@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Generador de Tabla desde Texto</title>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f4f4;
+    }
+
+    h2 {
+      color: #333;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 15px;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      margin-bottom: 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin-right: 10px;
+      margin-top: 10px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+    }
+
+    #generarBtn {
+      background-color: #28a745;
+      color: white;
+    }
+
+    #limpiarBtn {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    #exportarBtn {
+      background-color: #007bff;
+      color: white;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 30px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #e9ecef;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Generador de Tabla desde Texto</h2>
+
+  <label for="nombreUsuario">Nombre del Usuario:</label>
+  <input type="text" id="nombreUsuario" placeholder="Escribe tu nombre">
+
+  <label for="inputText">Texto a procesar:</label>
+  <textarea id="inputText" placeholder="Introduce el texto aquí..."></textarea>
+
+  <button id="generarBtn" onclick="generarFila()">Generar Tabla</button>
+  <button id="limpiarBtn" onclick="limpiarFormulario()">Limpiar</button>
+  <button id="exportarBtn" onclick="exportarExcel()">Exportar a Excel</button>
+
+  <table id="tablaResultado">
+    <thead>
+      <tr id="encabezadoFila"></tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <script>
+    const encabezados = [
+      "USUARIO", "FECHA", "FOLIO", "NÚMERO DE TICKET", "SD", "TCA", "CLIENTE",
+      "DIRECCION", "NUMERO DE CUENTA", "OT", "REPORTE DE CLIENTE", "RAZON SOCIAL", "SEGMENTO"
+    ];
+
+    // Crear encabezados de la tabla
+    window.onload = () => {
+      const encabezadoFila = document.getElementById("encabezadoFila");
+      encabezados.forEach(e => {
+        const th = document.createElement("th");
+        th.textContent = e;
+        encabezadoFila.appendChild(th);
+      });
+    };
+
+    function generarFila() {
+      const nombre = document.getElementById("nombreUsuario").value.trim();
+      const texto = document.getElementById("inputText").value.toUpperCase();
+      const palabras = texto.split(/\s+/);
+      const fila = {};
+
+      encabezados.forEach(encabezado => {
+        if (encabezado === "USUARIO") {
+          fila[encabezado] = nombre.toUpperCase();
+        } else {
+          const tokens = encabezado.split(" ");
+          let index = -1;
+          for (let i = 0; i < palabras.length - tokens.length; i++) {
+            if (tokens.every((t, j) => palabras[i + j] === t)) {
+              index = i + tokens.length;
+              break;
+            }
+          }
+          fila[encabezado] = (index !== -1 && index < palabras.length) ? palabras[index] : "";
+        }
+      });
+
+      const tbody = document.querySelector("#tablaResultado tbody");
+      const tr = document.createElement("tr");
+
+      encabezados.forEach(e => {
+        const td = document.createElement("td");
+        td.textContent = fila[e];
+        tr.appendChild(td);
+      });
+
+      tbody.appendChild(tr);
+    }
+
+    function limpiarFormulario() {
+      document.getElementById("nombreUsuario").value = "";
+      document.getElementById("inputText").value = "";
+    }
+
+    function exportarExcel() {
+      const tabla = document.getElementById("tablaResultado");
+      const wb = XLSX.utils.table_to_book(tabla, { sheet: "Datos" });
+      XLSX.writeFile(wb, "datos.xlsx");
+    }
+  </script>
+
+</body>
+</html>
